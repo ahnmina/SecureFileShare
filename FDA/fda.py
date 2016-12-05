@@ -121,7 +121,7 @@ def display_report_files(report_id):
 	print("")
 	print("Done!")
 	
-def display_reports():
+def display_reports(username,password):
 	key = '00112233445566778899aabbccddeeff'
 	url="https://quiet-tundra-22071.herokuapp.com/fda_getreports/" + username + "/" + password
 	with closing(urlopen(url)) as response:
