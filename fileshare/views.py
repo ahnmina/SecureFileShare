@@ -97,7 +97,7 @@ def fda_download_report(request,username,password,reportid,documentid):
     login(request, user)
     thereport = models.Report.objects.get(id=reportid)
     thedocument = models.Documents.objects.get(id=documentid)
-    theurl = "/media" + thedocument.file_attached.name
+    theurl = "/media/" + thedocument.file_attached.name
 
     return HttpResponseRedirect(theurl)
 
