@@ -92,11 +92,14 @@ def fda_getreports(request,username,password):
     return HttpResponse(json.dumps(viewable_reports))
 
 @csrf_exempt
-def fda_download_report(request,username,password,documentid):
+def fda_download_report(request,username,password,reportid,documentid):
     user = authenticate(username=username, password=password)
     login(request, user)
+    thereport = models.Report.objects.get(id=reportid)
     thedocument = models.Documents.objects.get(id=documentid)
-    return thedocument.file_attached
+    theurl = "/media/reports/" + str(thereport.created.date.year) + "/" + str(thereport.created.date.month) + "/" + str(thereport.created.date.day) + "/" + thedocument.file_attached.name
+
+    return HttpResponse(theurl)
 
 @csrf_exempt
 def fda_login(request, username, password):
