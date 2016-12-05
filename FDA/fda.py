@@ -84,7 +84,7 @@ def display_report_files(report_id):
 			file_hash_db = file["file_hash"]
 
 			if(file['is_encrypted']):
-				answer = input(file_name + " is encrypted. You must decrypt it to view the file. Would you like to decrypt?" + "\n")
+				answer = input(file_name + " is encrypted. You must decrypt it to view the file. Would you like to decrypt? Enter: 'y'" + "\n")
 				if(answer == 'y'):
 					decrypt_file(file_name, key)
 					print (file_name + " has been decrypted")
