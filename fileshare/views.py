@@ -97,7 +97,7 @@ def fda_download_report(request,username,password,reportid,documentid):
     login(request, user)
     thereport = models.Report.objects.get(id=reportid)
     thedocument = models.Documents.objects.get(id=documentid)
-    theurl = "/media/reports/" + str(thereport.created.date.year) + "/" + str(thereport.created.date.month) + "/" + str(thereport.created.date.day) + "/" + thedocument.file_attached.name
+    theurl = "/media/reports/" + str(thereport.created.year) + "/" + str(thereport.created.month) + "/" + str(thereport.created.day) + "/" + thedocument.file_attached.name
 
     return HttpResponse(theurl)
 
