@@ -532,7 +532,7 @@ def deletemessage(request, message_pk):
 def create_group(request):
     if request.method == 'POST':
         group_form = GroupForm(request.POST)
-        members = Q()
+        members = models.Profile.objects.all().exclude(user=request.user)
 
         if group_form.is_valid():
 
