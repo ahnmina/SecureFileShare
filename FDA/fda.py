@@ -8,6 +8,9 @@ import hashlib
 from Crypto import Random
 from Crypto.Cipher import AES
 import io
+import urllib
+
+
 
 print ("------------------------SecureFileShare's File Download Application----------------------------" +"\n")
 print ("Use this application to encrypt files and upload files or to decrypt and download files." + "\n" + "Please enter your username and password from your" +
@@ -76,50 +79,76 @@ def display_report_files(report_id):
 	file_id = input("Please enter an id of a file to download: ")
 	file_url = ""
 	file_name = ""
+
 	for file in files:
 		if str(file["id"]) == file_id:
 			file_url = "https://quiet-tundra-22071.herokuapp.com/media/" + file["file_name"]
 			file_url_parts = file["file_name"].split('/')
 			file_name = file_url_parts[len(file_url_parts)-1]
 			file_hash_db = file["file_hash"]
+			if (file['is_encrypted']):
+				answer = input(
+					file_name + " is encrypted. You must decrypt it to view the file. Would you like to decrypt? Enter: 'y'" + "\n")
+				if (answer == 'y'):
+					print("downloading " + file_name)
+					response2 = urllib.request.urlopen(file_url)
+					thedata = response2.read()
 
-			if(file['is_encrypted']):
-				answer = input(file_name + " is encrypted. You must decrypt it to view the file. Would you like to decrypt? Enter: 'y'" + "\n")
-				if(answer == 'y'):
+					# Write data to file
+					file_ = open(file_name, 'wb')
+					file_.write(thedata)
+					file_.close()
 					decrypt_file(file_name, key)
-					print (file_name + " has been decrypted")
+					print(file_name + " has been decrypted")
+					print("")
+					file_hash = hashfile(file_name)
+					print("")
+					print("-------------------------------------------------------------------")
+					print("calculated file hash: " + file_hash)
+					print("  original file hash: " + file_hash_db)
+					if file_hash == file_hash_db:
+						print("")
+						print("File validated! File hash matches!")
+					else:
+						print("File hash does not match. Please try to download again.")
+					print("-------------------------------------------------------------------")
+
+					with open(file_name + ".sha256", 'w') as f:
+						f.write(file_hash)
+					print("")
+					print("Done!")
+
 				else:
 					print("Failed to download " + file_name + "Need to encrypt this file to view.")
+				break
+			else:
+				print("downloading " + file_name)
+				response2 = urllib.request.urlopen(file_url)
+				thedata = response2.read()
 
+				# Write data to file
+				file_ = open(file_name, 'wb')
+				file_.write(thedata)
+				file_.close()
+				print("")
+				file_hash = hashfile(file_name)
+				print("")
+				print("-------------------------------------------------------------------")
+				print("calculated file hash: " + file_hash)
+				print("  original file hash: " + file_hash_db)
+				if file_hash == file_hash_db:
+					print("")
+					print("File validated! File hash matches!")
+				else:
+					print("File hash does not match. Please try to download again.")
+				print("-------------------------------------------------------------------")
 
-			print("")
-			#print(file_url)
-			#print("downloading " + file_name)
-			break
+				with open(file_name + ".sha256", 'w') as f:
+					f.write(file_hash)
+				print("")
+				print("Done!")
+				break
 
-	with closing(urlopen(file_url)) as response:
-		data = response.read()
-
-	with open(file_name, 'wb') as f:
-		f.write(data)
-
-	file_hash = hashfile(file_name)
-	print("")
-	print("-------------------------------------------------------------------")
-	print("calculated file hash: " + file_hash)
-	print("  original file hash: " + file_hash_db)
-	if file_hash == file_hash_db:
-		print("")
-		print("File validated! File hash matches!")
-	else:
-		print("File hash does not match. Please try to download again.")
-	print("-------------------------------------------------------------------")
-	print("downloading " + file_name)
-	with open(file_name + ".sha256", 'w') as f:
-		f.write(file_hash)
-	
-	print("")
-	print("Done!")
 	
 def display_reports(username,password):
 	key = '00112233445566778899aabbccddeeff'
