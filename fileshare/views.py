@@ -97,9 +97,9 @@ def fda_download_report(request,username,password,reportid,documentid):
     login(request, user)
     thereport = models.Report.objects.get(id=reportid)
     thedocument = models.Documents.objects.get(id=documentid)
-    theurl = "/media/reports/" + str(thereport.created.year) + "/" + str(thereport.created.month) + "/" + str(thereport.created.day) + "/" + thedocument.file_attached.name
+    theurl = "/media" + thedocument.file_attached.name
 
-    return HttpResponse(theurl)
+    return HttpResponseRedirect(theurl)
 
 @csrf_exempt
 def fda_login(request, username, password):
