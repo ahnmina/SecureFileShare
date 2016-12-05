@@ -73,9 +73,11 @@ def HexToByte(hexStr):
 
 
 @csrf_exempt
-def fda_getreports(request):
-    your_reports = models.Report.objects.filter(owned_by=request.user)
-    other_reports = models.Report.objects.filter(private=False).exclude(owned_by=request.user)
+def fda_getreports(request,username,password):
+    user = authenticate(username=username, password=password)
+    login(request, user)
+    your_reports = models.Report.objects.filter(owned_by=user)
+    other_reports = models.Report.objects.filter(private=False).exclude(owned_by=user)
     viewable_reports = []
     for your_report in your_reports:
         num_attachments = len(your_report.files.all())

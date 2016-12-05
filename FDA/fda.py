@@ -123,7 +123,7 @@ def display_report_files(report_id):
 	
 def display_reports():
 	key = '00112233445566778899aabbccddeeff'
-	url="https://quiet-tundra-22071.herokuapp.com/fda_getreports"
+	url="https://quiet-tundra-22071.herokuapp.com/fda_getreports/" + username + "/" + password
 	with closing(urlopen(url)) as response:
 		#print(response.read().decode())
 		json_data = response.read().decode()
@@ -155,9 +155,8 @@ def login(username,password):
 	url = "https://quiet-tundra-22071.herokuapp.com/fda_login/" + username + "/" + password
 	with closing(urlopen(url)) as response:
 		result = response.read()
-
-	if (result == "true"):
-		display_reports()
+	if (result == b"true"):
+		display_reports(username,password)
 	else:
 		print("Invalid login. Please try again.")
 		username = input('Enter Userid: ')

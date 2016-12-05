@@ -53,6 +53,6 @@ urlpatterns = [
     url('^update_unread/(?P<message_pk>.*)$',views.updateunread,name="update_unread"),
     url('^search_results', views.search_results, name='search_results'),
     url('^fda_login/(?P<username>.+)/(?P<password>.+)', views.fda_login, name='fda_login'),
-    url('^fda_getreports', views.fda_getreports, name='fda_getreports'),
+    url('^fda_getreports/(?P<username>.+)/(?P<password>.+)', views.fda_getreports, name='fda_getreports'),
     url('^fda_report_files/(?P<report_id>[0-9]+)$', views.fda_report_files, name='fda_report_files'),
 ]
