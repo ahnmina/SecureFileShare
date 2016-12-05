@@ -2,7 +2,22 @@
 
 {% block content %}
 
-<div class="container">
+<div style="padding-left:40px">
+	<div style="float: right;width: 15%;overflow:scroll;height:1200px;background-color: #87CEFA;padding-right: 3px;padding-left: 3px;">
+		<div><h3>User Activity Feed</h3></div>
+		<table class="table table-hover">
+			{% if activity %}
+                    {% for a in activity %}
+			<tr>
+					<div style="float:left"><strong class="primary-font">{{a.description}}</strong></div>
+
+					<div style="float:right">{{a.time}}</div>
+				{% endfor %}
+				{% endif %}
+		</table>
+	</div>
+
+	<div style="float:left;width:85%;padding-right: 5px">
 	<h1>Hello, {{ user.username }}!<br><small>You are on your Dashboard</small></h1>
 
 	
@@ -14,10 +29,13 @@
 						<div class="form-group">
 							<form id="s01" class="form-inline" method="POST" action="{% url 'fileshare:search_results' %}">
 								{% csrf_token %}
-								<div class="input-group">
+								<div class="input-group" id="searchfield">
 									{{ search_form.search }}
 								</div>
-								<div class="input-group">
+								<div class="input-group" id="datepickerfield">
+									{{ search_form.datepicker }}
+								</div>
+								<div class="input-group" id="parameterfield">
 									{{ search_form.parameter }}
 								</div>
 								<button type="submit" class="btn btn-default btn-sm" name="a" value="Search"><span class="glyphicon glyphicon-search"></span></button>
@@ -34,6 +52,9 @@
 		<div class="panel panel-default">
 			<div class="panel-heading"><strong>Your Folders</strong></div>
 			<div class="panel-body">
+				{% if folders.count == 0 %}
+				<i>You have no folders.</i>
+				{% else %}
 				<table class="table table-hover">
 					<tr>
 						<th>Name</th>
@@ -45,14 +66,24 @@
 					</tr>
 					{% endfor %}
 				</table>
+				{% endif %}
 			</div>
 		</div>
-
+						<div class="panel panel-default">
+					<div class="panel-heading"><strong>Create a New Folder</strong></div>
+					<div class="panel-body">
+						<form method="POST" action="{% url 'fileshare:main' %}">
+							{% csrf_token %}
+							{{ folder_form.as_p }}
+							<input class="btn btn-primary" type="submit" value="Create Folder">
+						</form>
+					</div>
+				</div>
 		<div class="panel panel-default">
 			<div class="panel-heading"><strong>Your Reports</strong></div>
 			<div class="panel-body">
 				{% if num_reports == 0 %}
-				You have no reports.
+				<i>You have no reports.</i>
 				{% else %}
 				<table class="table table-hover">
 					<tr>
@@ -94,7 +125,7 @@
 						{% endif %}
 					</div>
 				</div>
-				<div class="panel panel-default">
+<!-- 				<div class="panel panel-default">
 					<div class="panel-heading"><strong>Create a New Folder</strong></div>
 					<div class="panel-body">
 						<form method="POST" action="{% url 'fileshare:main' %}">
@@ -103,12 +134,13 @@
 							<input class="btn btn-primary" type="submit" value="Create Folder">
 						</form>
 					</div>
-				</div>
+				</div> -->
 			</div>
 
 			<div class="panel panel-default">
 				<div class="panel-heading"><strong>Other Public Reports</strong></div>
 				<div class="panel-body">
+					{% if other_reports.count != 0 %}
 					<table class="table table-striped">
 						<tr>
 							<th></th>
@@ -141,12 +173,19 @@
 						</tr>
 						{% endfor %}
 					</table>
+					{% else %}
+				<i>There are no other reports to view.</i>
+				{% endif %}
 				</div>
+				
 			</div>
 
 			<div class="panel panel-default">
 				<div class="panel-heading"><strong>Your Groups</strong></div>
 				<div class="panel-body">
+					{% if user.profile.groups_in.count == 0 %}
+					<i>No groups to show</i>
+					{% else %}
 					<table class="table table-striped">
 						<tr>
 							<th> Name </th>
@@ -155,14 +194,56 @@
 						</tr>
 						{% for g in user.profile.groups_in.all %}
 						<tr>
-							<td> <a href="{{ g.id }}/view_group">{{ g.name }}</a> </td>
+							<td> <a href="{% url 'fileshare:view_group' g.id %}">{{ g.name }}</a> </td>
 							<td>{{ g.creator }}</td>
 							<td>{{ g.members.count }}</td>
 						</tr>
 						{% endfor %}
 					</table>
+					{% endif %}
 				</div>
 			</div>
 		</div>
+</div>
 
+<script>
+
+	function assignjavafunction() {
+		var selector = document.getElementById("id_parameter");
+		selector.setAttribute("onchange","selectchange()")
+		var monthbox = document.getElementById("id_datepicker_month");
+		var daybox = document.getElementById("id_datepicker_day");
+		var yearbox = document.getElementById("id_datepicker_year");
+		monthbox.setAttribute("class","hidden");
+			daybox.setAttribute("class","hidden");
+			yearbox.setAttribute("class","hidden");
+	}
+
+	function selectchange() {
+		var selector = document.getElementById("id_parameter");
+		var selectedval = selector.value;
+		var searchbox = document.getElementById("id_search");
+		var monthbox = document.getElementById("id_datepicker_month");
+		var daybox = document.getElementById("id_datepicker_day");
+		var yearbox = document.getElementById("id_datepicker_year");
+		if (selectedval == "desc" || selectedval=="owner") {
+			searchbox.setAttribute("class","input-group");
+			monthbox.setAttribute("class","hidden");
+			daybox.setAttribute("class","hidden");
+			yearbox.setAttribute("class","hidden");
+
+		}
+		else {
+			searchbox.setAttribute("class","hidden");
+			monthbox.setAttribute("class","");
+			daybox.setAttribute("class","");
+			yearbox.setAttribute("class","");
+
+		}
+
+	}
+
+
+	document.onload = assignjavafunction();
+</script>
 		{% endblock %}
