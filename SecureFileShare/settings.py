@@ -114,7 +114,7 @@ USE_TZ = True
 #STATIC_URL = '/fileshare/static/'
 #as per Nate's instructions and https://devcenter.heroku.com/articles/django-assets :
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-STATIC_ROOT = os.path.join(PROJECT_ROOT, '/fileshare/static/')
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static/')
 STATIC_URL = '/fileshare/static/'
 
 LOGIN_REDIRECT_URL = 'main'
