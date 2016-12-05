@@ -532,6 +532,7 @@ def deletemessage(request, message_pk):
 def create_group(request):
     if request.method == 'POST':
         group_form = GroupForm(request.POST)
+        members = Q()
 
         if group_form.is_valid():
 
