@@ -123,7 +123,7 @@ def display_report_files(report_id):
 	
 def display_reports():
 	key = '00112233445566778899aabbccddeeff'
-	url="https://quiet-tundra-22071.herokuapp.com/fda_login/" + username + "/" + password
+	url="https://quiet-tundra-22071.herokuapp.com/fda_getreports"
 	with closing(urlopen(url)) as response:
 		#print(response.read().decode())
 		json_data = response.read().decode()
@@ -149,8 +149,22 @@ def display_reports():
 		sys.exit(0)
 	else:
 		answer = (int)(input("Select an option:" + "\n" + "1. Encrypt a file to upload,"+ "\n" + "2. Decrypt a file to download" + "\n" + "3. Quit" + "\n"))
-	
-display_reports()
+
+
+def login(username,password):
+	url = "https://quiet-tundra-22071.herokuapp.com/fda_login/" + username + "/" + password
+	with closing(urlopen(url)) as response:
+		result = response.read()
+
+	if (result == "true"):
+		display_reports()
+	else:
+		print("Invalid login. Please try again.")
+		username = input('Enter Userid: ')
+		password = input('Enter Password: ')
+		login(username,password)
+
+login(username,password)
 
 
 
