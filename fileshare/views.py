@@ -33,7 +33,6 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 
-
 # Create your views here.
 def ByteToHex(byteStr):
     """
@@ -72,11 +71,12 @@ def HexToByte(hexStr):
 
     return ''.join(bytes)
 
+
 @csrf_exempt
-def fda_login(request,username,password):
+def fda_login(request, username, password):
     print("username: " + username)
-#     print("password: " + password)
-    user = authenticate(username = username, password = password)
+    #     print("password: " + password)
+    user = authenticate(username=username, password=password)
     if user is not None:
         login(request, user)
         your_reports = models.Report.objects.filter(owned_by=user)
@@ -84,33 +84,38 @@ def fda_login(request,username,password):
         viewable_reports = []
         for your_report in your_reports:
             num_attachments = len(your_report.files.all())
-            report_data = {"report_id":your_report.id, "title":your_report.short_desc, "attachments":num_attachments}
+            report_data = {"report_id": your_report.id, "title": your_report.short_desc, "attachments": num_attachments}
             viewable_reports.append(report_data)
         for other_report in other_reports:
             num_attachments = len(other_report.files.all())
-            report_data = {"report_id":other_report.id, "title":other_report.short_desc, "attachments":num_attachments}
+            report_data = {"report_id": other_report.id, "title": other_report.short_desc,
+                           "attachments": num_attachments}
             viewable_reports.append(report_data)
-        
+
         return HttpResponse(json.dumps(viewable_reports))
-        
+
     return HttpResponse('Login Failed!')
 
+
 @csrf_exempt
-def fda_report_files(request,report_id):
+def fda_report_files(request, report_id):
     user = request.user
     if user is not None:
         report = models.Report.objects.filter(pk=report_id)[0]
         downloadable_files = []
         for file in report.files.all():
-            filedata = {"id":file.id, "file_name":file.file_attached.name, "is_encrypted":file.is_encrypted, "file_hash":file.file_hash}
+            filedata = {"id": file.id, "file_name": file.file_attached.name, "is_encrypted": file.is_encrypted,
+                        "file_hash": file.file_hash}
             downloadable_files.append(filedata)
-        
+
         return HttpResponse(json.dumps(downloadable_files))
-    
+
     return HttpResponse('Login Failed!')
+
 
 def register_success(request):
     return render(request, 'fileshare/register_success.html')
+
 
 @login_required(login_url='login')
 def main(request):
@@ -125,9 +130,9 @@ def main(request):
 
         if search_form.is_valid():
             cd = search_form.cleaned_data
-            #request.session['param'] = cd.get('param')
-            #request.session['query'] = cd.get('query')
-            #return redirect('search_results')
+            # request.session['param'] = cd.get('param')
+            # request.session['query'] = cd.get('query')
+            # return redirect('search_results')
 
         elif folder_form.is_valid():
             folder = models.Folder.objects.create(
@@ -145,7 +150,7 @@ def main(request):
 
     return render(request, 'fileshare/main.html',
                   {'your_reports': your_reports, 'num_reports': num_reports, 'other_reports': other_reports,
-                   'folder_form': folder_form, 'folders': folders, 'search_form': search_form,'activity':activity})
+                   'folder_form': folder_form, 'folders': folders, 'search_form': search_form, 'activity': activity})
 
 
 @login_required(login_url='login')
@@ -164,17 +169,20 @@ def create_report(request):
                 private=report_form.cleaned_data['private'],
                 is_encrypted=report_form.cleaned_data['is_encrypted']
             )
-#             newdoc.save()
+            #             newdoc.save()
             json_data = request.POST.get('file_hash')
             if json_data != "":
                 file_hashes = json.loads(json_data)
             print("file_hash: " + json_data)
             for f in request.FILES.getlist('files'):
                 fHash = getFileHashFromData(file_hashes, f.name)
-                d = models.Documents.objects.create(file_attached=f, is_encrypted=report_form.cleaned_data['is_encrypted'], file_hash=fHash)
+                d = models.Documents.objects.create(file_attached=f,
+                                                    is_encrypted=report_form.cleaned_data['is_encrypted'],
+                                                    file_hash=fHash)
                 newdoc.files.add(d)
             newdoc.save()
-            newactivity = models.Activity.objects.create(owned_by=request.user,time=datetime.datetime.now(),description="Created " + newdoc.short_desc)
+            newactivity = models.Activity.objects.create(owned_by=request.user, time=datetime.datetime.now(),
+                                                         description="Created " + newdoc.short_desc)
             newactivity.save()
 
             return redirect('main')
@@ -219,10 +227,10 @@ def view_report(request, report_id):
 
         elif comment_form.is_valid():
             c = models.ReportComments.objects.create(
-                creator = request.user.profile,
-                timestamp = datetime.datetime.now(),
-                comment = request.POST.get('comment')
-                )
+                creator=request.user.profile,
+                timestamp=datetime.datetime.now(),
+                comment=request.POST.get('comment')
+            )
             report.comments.add(c)
             report.save()
             c.save()
@@ -232,8 +240,8 @@ def view_report(request, report_id):
             newactivity.save()
             if (report.owned_by != request.user):
                 newactivity = models.Activity.objects.create(owned_by=report.owned_by, time=datetime.datetime.now(),
-                                                         description= str(request.user.username) + " commented on " +
-                                                                     str(report.short_desc))
+                                                             description=str(request.user.username) + " commented on " +
+                                                                         str(report.short_desc))
                 newactivity.save()
 
         elif update_form.is_valid():
@@ -258,7 +266,7 @@ def view_report(request, report_id):
                                                                          str(report.short_desc))
                 newactivity.save()
                 return redirect('main')
-            
+
             if request.POST.get('action')[0] == "f":
                 print("here5")
                 report.last_modified = datetime.datetime.now()
@@ -279,13 +287,15 @@ def view_report(request, report_id):
         update_form = ReportForm(instance=report)
         comment_form = ReportCommentsForm()
 
-    return render(request, 'fileshare/view_report.html', {'report': report, 'update_form': update_form, 'files': files, 'num_files': files.count(), 'encrypted': encrypted, 'comment_form': comment_form, 'report_comments': report_comments})
+    return render(request, 'fileshare/view_report.html',
+                  {'report': report, 'update_form': update_form, 'files': files, 'num_files': files.count(),
+                   'encrypted': encrypted, 'comment_form': comment_form, 'report_comments': report_comments})
+
 
 def getFileHashFromData(data, filename):
     for file in data:
         if file["filename"] == filename:
             return file["file_hash"]
-
 
 
 @login_required(login_url='login')
@@ -298,7 +308,10 @@ def view_group_report(request, report_id, profilegroup_id):
     if request.user.profile not in group.members.all():
         return redirect('main')
 
-    return render(request, 'fileshare/view_group_report.html', {'report': report, 'group': group, 'encrypted': encrypted, 'files': files, 'num_files': files.count()})
+    return render(request, 'fileshare/view_group_report.html',
+                  {'report': report, 'group': group, 'encrypted': encrypted, 'files': files,
+                   'num_files': files.count()})
+
 
 @login_required(login_url='login')
 def user_delete_report(request, report_id):
@@ -317,7 +330,6 @@ def user_delete_report(request, report_id):
     return HttpResponseRedirect('/main')
 
 
-
 @login_required(login_url='login')
 def account_update_success(request):
     return render(request, 'fileshare/account_update_success.html')
@@ -326,6 +338,7 @@ def account_update_success(request):
 @login_required(login_url='login')
 def account(request):
     return render(request, 'fileshare/account.html')
+
 
 @login_required(login_url='login')
 def messages(request):
@@ -342,18 +355,15 @@ def messages(request):
                                                           reciever_name=user.username + "-" + models.User.objects.get(
                                                               id=request.POST[
                                                                   'sender']).username,
-                                                          recently_used=datetime.datetime.now(),unreadmessages="0"
+                                                          recently_used=datetime.datetime.now(), unreadmessages="0"
                                                           )
             newconvo.save()
-            if(request.POST['thekey']!="True"):
+            if (request.POST['thekey'] != "True"):
                 newmessage = models.Message.objects.create(owned_by=newconvo,
                                                            sender=user,
                                                            messagecontent=request.POST['messagecontent'],
                                                            time=datetime.datetime.now(), key=request.POST['thekey'])
                 newmessage.save()
-
-
-
 
             # reciever data
             newconvo2 = models.Conversation.objects.create(reciever=user,
@@ -361,7 +371,7 @@ def messages(request):
                                                            reciever_name=models.User.objects.get(
                                                                id=request.POST[
                                                                    'sender']).username + "-" + user.username,
-                                                           recently_used=datetime.datetime.now(),unreadmessages="1"
+                                                           recently_used=datetime.datetime.now(), unreadmessages="1"
                                                            )
             newconvo2.save()
             otheruser = newconvo2.sender
@@ -379,18 +389,17 @@ def messages(request):
                 encryptedmessage = base64.b16encode(encryptedmessage)
                 encryptedmessage = str(encryptedmessage, 'ascii')
                 newmessage2 = models.Message.objects.create(owned_by=newconvo2,
-                                                           sender=user,
-                                                           messagecontent=encryptedmessage,
-                                                           time=datetime.datetime.now(), key=request.POST['thekey'])
+                                                            sender=user,
+                                                            messagecontent=encryptedmessage,
+                                                            time=datetime.datetime.now(), key=request.POST['thekey'])
                 newmessage2.save()
 
             else:
                 newmessage2 = models.Message.objects.create(owned_by=newconvo2,
-                                                           sender=user,
-                                                           messagecontent=str(request.POST['messagecontent']),
-                                                           time=datetime.datetime.now(), key=request.POST['thekey'])
+                                                            sender=user,
+                                                            messagecontent=str(request.POST['messagecontent']),
+                                                            time=datetime.datetime.now(), key=request.POST['thekey'])
                 newmessage2.save()
-
 
             return redirect("/messages")
 
@@ -414,20 +423,20 @@ def messages(request):
                 thekey = RSA.importKey(convo2.sender.profile.publickey)
 
                 messagetoencrypt = str(request.POST['messagecontent'])
-                encryptedmessage = thekey.encrypt(messagetoencrypt.encode(),1)
+                encryptedmessage = thekey.encrypt(messagetoencrypt.encode(), 1)
                 encryptedmessage = encryptedmessage[0];
                 encryptedmessage = base64.b16encode(encryptedmessage)
-                encryptedmessage = str(encryptedmessage,'ascii')
+                encryptedmessage = str(encryptedmessage, 'ascii')
                 newmessage2 = models.Message.objects.create(owned_by=convo2,
-                                                        sender=user,
-                                                        messagecontent=encryptedmessage,
-                                                        time=datetime.datetime.now(), key=request.POST['thekey'])
+                                                            sender=user,
+                                                            messagecontent=encryptedmessage,
+                                                            time=datetime.datetime.now(), key=request.POST['thekey'])
                 newmessage2.save()
             else:
                 newmessage2 = models.Message.objects.create(owned_by=convo2,
-                                                           sender=user,
-                                                           messagecontent=str(request.POST['messagecontent']),
-                                                           time=datetime.datetime.now(), key=request.POST['thekey'])
+                                                            sender=user,
+                                                            messagecontent=str(request.POST['messagecontent']),
+                                                            time=datetime.datetime.now(), key=request.POST['thekey'])
                 newmessage2.save()
 
             convo2.recently_used = newmessage2.time
@@ -479,6 +488,7 @@ def update_profile(request):
 
     return render(request, "fileshare/account_update.html", context)
 
+
 @login_required(login_url='login')
 def password_change(request):
     form = auth_forms.PasswordChangeForm(user=request.user, data=request.POST)
@@ -522,14 +532,16 @@ def create_group(request):
                 m.groups_in.add(instance)
                 instance.members.add(m)
                 newactivity = models.Activity.objects.create(owned_by=m.user, time=datetime.datetime.now(),
-                                                             description=str(request.user.username) +" added you to " + str(instance.name))
+                                                             description=str(
+                                                                 request.user.username) + " added you to " + str(
+                                                                 instance.name))
                 newactivity.save()
                 m.save()
 
             instance.creator = request.user
             instance.save()
             request.user.profile.save()
-            
+
             newactivity = models.Activity.objects.create(owned_by=request.user, time=datetime.datetime.now(),
                                                          description="Created " + str(instance.name))
             newactivity.save()
@@ -544,8 +556,9 @@ def create_group(request):
 @login_required(login_url='login')
 def view_group(request, group_id):
     group = get_object_or_404(models.ProfileGroup, pk=group_id)
-    #private_reports = request.user.profile.reports_owned.filter(private=True)
-    private_reports = models.Report.objects.filter(owned_by=request.user, private=True).exclude(id__in=group.reports.all())
+    # private_reports = request.user.profile.reports_owned.filter(private=True)
+    private_reports = models.Report.objects.filter(owned_by=request.user, private=True).exclude(
+        id__in=group.reports.all())
     all_users = models.User.objects.all()
     group_comments = group.comments
 
@@ -554,7 +567,7 @@ def view_group(request, group_id):
     elif request.method == "POST":
         update_form = UpdateGroupForm(request.POST, instance=group)
         comment_form = ReportCommentsForm(request.POST)
-        
+
         action = request.POST.get('action')
         if action != "Save Changes":
             if action[0] == 'a':
@@ -563,18 +576,20 @@ def view_group(request, group_id):
                 group.save()
                 newactivity = models.Activity.objects.create(owned_by=request.user, time=datetime.datetime.now(),
                                                              description="Added " +
-                                                                         str(report.short_desc) + " to " + str(group.name))
+                                                                         str(report.short_desc) + " to " + str(
+                                                                 group.name))
                 newactivity.save()
             elif action[0] == 'r':
                 report = get_object_or_404(models.Report, pk=action[1:])
                 newactivity = models.Activity.objects.create(owned_by=request.user, time=datetime.datetime.now(),
                                                              description="Removed " +
-                                                                         str(report.short_desc) + " from " + str(group.name))
+                                                                         str(report.short_desc) + " from " + str(
+                                                                 group.name))
                 newactivity.save()
                 group.reports.remove(report)
                 group.save()
 
-            
+
             elif action[0] == 'p':
                 m = get_object_or_404(models.Profile, pk=action[1:])
                 m.groups_in.add(group)
@@ -582,7 +597,8 @@ def view_group(request, group_id):
                 group.save()
                 newactivity = models.Activity.objects.create(owned_by=request.user, time=datetime.datetime.now(),
                                                              description="Added " +
-                                                                         str(m.user.username) + " to " + str(group.name))
+                                                                         str(m.user.username) + " to " + str(
+                                                                 group.name))
                 newactivity.save()
                 newactivity = models.Activity.objects.create(owned_by=m.user, time=datetime.datetime.now(),
                                                              description=str(request.user) + " added you to " + str(
@@ -605,10 +621,10 @@ def view_group(request, group_id):
 
             elif action == 'c':
                 c = models.ReportComments.objects.create(
-                    creator = request.user.profile,
-                    timestamp = datetime.datetime.now(),
-                    comment = request.POST.get('comment')
-                    )
+                    creator=request.user.profile,
+                    timestamp=datetime.datetime.now(),
+                    comment=request.POST.get('comment')
+                )
                 group.comments.add(c)
                 group.save()
                 c.save()
@@ -620,7 +636,8 @@ def view_group(request, group_id):
                 group.save()
                 newactivity = models.Activity.objects.create(owned_by=request.user, time=datetime.datetime.now(),
                                                              description="Removed " +
-                                                                         str(m.user.username) + " from " + str(group.name))
+                                                                         str(m.user.username) + " from " + str(
+                                                                 group.name))
                 newactivity.save()
                 newactivity = models.Activity.objects.create(owned_by=m.user, time=datetime.datetime.now(),
                                                              description=str(request.user) + " removed you from " + str(
@@ -635,7 +652,7 @@ def view_group(request, group_id):
                                                                          str(group.name))
                 newactivity.save()
                 update_form.save()
-                
+
             else:
                 newactivity = models.Activity.objects.create(owned_by=request.user, time=datetime.datetime.now(),
                                                              description="Removed yourself from " +
@@ -648,8 +665,9 @@ def view_group(request, group_id):
         update_form = UpdateGroupForm(instance=group)
         comment_form = ReportCommentsForm()
 
-    return render(request, 'fileshare/view_group.html', {'group': group, 'update_form': update_form, 'private_reports': private_reports, 'all_users': all_users, 'comment_form': comment_form, 'group_comments': group_comments})
-
+    return render(request, 'fileshare/view_group.html',
+                  {'group': group, 'update_form': update_form, 'private_reports': private_reports,
+                   'all_users': all_users, 'comment_form': comment_form, 'group_comments': group_comments})
 
 
 @login_required(login_url='login')
@@ -671,7 +689,8 @@ def view_folder(request, folder_id):
                 report.in_folder = True
                 newactivity = models.Activity.objects.create(owned_by=request.user, time=datetime.datetime.now(),
                                                              description="Added " +
-                                                                         str(report.short_desc) + " to " + str(folder.name))
+                                                                         str(report.short_desc) + " to " + str(
+                                                                 folder.name))
                 newactivity.save()
             else:
                 folder.reports.remove(report)
@@ -709,33 +728,47 @@ def view_folder(request, folder_id):
 def register(request):
     if request.method == 'POST':
         register_form = signup_form(request.POST)
+        try:
+            theuser = authmodels.User.objects.get(username=request.POST['username'])
+            print("here")
+            return render(request, 'fileshare/register.html',
+                          {'form': register_form, 'errormessage': "Username already exists!"})
+        except:
+            if register_form.is_valid():
+                # print(register_form.clean_password2())
 
-        if register_form.is_valid():
-            newuser = authmodels.User.objects.create(username=request.POST['username'],
-                                                     first_name=request.POST['first_name'],
-                                                     last_name=request.POST['last_name'],
-                                                     email=request.POST['email']
-                                                     )
-            newuser.set_password(register_form.cleaned_data["password1"])
-            newuser.save()
+                print("here2")
+                if (register_form.clean_password2()):
+                    return render(request, 'fileshare/register.html',
+                                  {'form': register_form, 'errormessage': "Passwords do not match."})
 
-            random_generator = Random.new().read
-            key = RSA.generate(1024, random_generator)
-            pubkey = key.publickey()
-            newuser.profile.publickey = pubkey.exportKey()
-            newuser.profile.save()
-            newactivity = models.Activity.objects.create(owned_by=newuser, time=datetime.datetime.now(),
-                                                         description="Account created.")
-            newactivity.save()
+                else:
+                    newuser = authmodels.User.objects.create(username=request.POST['username'],
+                                                             first_name=request.POST['first_name'],
+                                                             last_name=request.POST['last_name'],
+                                                             email=request.POST['email']
+                                                             )
+                    newuser.set_password(register_form.cleaned_data['password1'])
+                    newuser.save()
 
-            # return HttpResponseRedirect('/register/success/'+str(newuser.id))
-            # return(register_success(request,newuser.id))
-            return render(request,'fileshare/register_success.html',{'key':str(key.exportKey())})
+                    random_generator = Random.new().read
+                    key = RSA.generate(1024, random_generator)
+                    pubkey = key.publickey()
+                    newuser.profile.publickey = pubkey.exportKey()
+                    newuser.profile.save()
+                    newactivity = models.Activity.objects.create(owned_by=newuser, time=datetime.datetime.now(),
+                                                                 description="Account created.")
+                    newactivity.save()
+
+                    # return HttpResponseRedirect('/register/success/'+str(newuser.id))
+                    # return(register_success(request,newuser.id))
+                    return render(request, 'fileshare/register_success.html', {'key': str(key.exportKey())})
 
     else:
         register_form = signup_form()
 
     return render(request, 'fileshare/register.html', {'form': signup_form()})
+
 
 # site manager views
 @login_required(login_url='login')
@@ -743,11 +776,13 @@ def sitemanager(request):
     if (request.user.is_staff):
         return render(request, 'fileshare/sitemanager.html')
 
+
 @login_required(login_url='login')
 def manage_users(request):
     if (request.user.is_staff):
         all_users = models.User.objects.all()
         return render(request, 'fileshare/manage_users.html', {'all_users': all_users})
+
 
 @login_required(login_url='login')
 def manage_reports(request):
@@ -755,11 +790,13 @@ def manage_reports(request):
         all_reports = models.Report.objects.all()
         return render(request, 'fileshare/manage_reports.html', {'all_reports': all_reports})
 
+
 @login_required(login_url='login')
 def manage_groups(request):
     if (request.user.is_staff):
         all_groups = models.ProfileGroup.objects.all()
         return render(request, 'fileshare/manage_groups.html', {'all_groups': all_groups})
+
 
 @login_required(login_url='login')
 def edit_user(request, user_id):
@@ -767,6 +804,7 @@ def edit_user(request, user_id):
     # print(profile[0].user.username)
 
     return render(request, 'fileshare/edit_user.html', {'profile': profile[0]})
+
 
 @login_required(login_url='login')
 def sm_update_user(request):
@@ -784,6 +822,7 @@ def sm_update_user(request):
     newactivity.save()
     return render(request, 'fileshare/user_update_success.html', {'profile': profile})
 
+
 @login_required(login_url='login')
 def delete_report(request, report_id):
     report = get_object_or_404(models.Report, pk=report_id)
@@ -794,6 +833,7 @@ def delete_report(request, report_id):
     return HttpResponseRedirect('/manage_reports.html')
     # return render(request, 'fileshare/manage_reports.html')
 
+
 # return render(request, 'fileshare/sm_update_user.html')
 # def edit_group(request):
 #     all_groups = models.ProfileGroup.objects.all()
@@ -802,6 +842,7 @@ def delete_report(request, report_id):
 
 def test(request):
     return HttpResponse("test")
+
 
 @login_required(login_url='login')
 def decrypt_message(request, message_pk):
@@ -814,8 +855,8 @@ def decrypt_message(request, message_pk):
         print(password)
         password = password[2:]
         password = password[:-1]
-        password2 = password.replace('\\n','\n')
-        password = password[0:24]+password2[24:-25]+password[-25:]
+        password2 = password.replace('\\n', '\n')
+        password = password[0:24] + password2[24:-25] + password[-25:]
         print(password)
         originalmessage = binascii.unhexlify(query.messagecontent)
         try:
@@ -823,7 +864,7 @@ def decrypt_message(request, message_pk):
             pubkey = thekey.publickey()
             encryptedmessage = thekey.decrypt(originalmessage)
         except:
-            return render(request,'fileshare/decrypt_message.html', {'message': "Invalid RSA key."})
+            return render(request, 'fileshare/decrypt_message.html', {'message': "Invalid RSA key."})
 
         return render(request, 'fileshare/decrypt_message.html', {'message': encryptedmessage})
     else:
@@ -831,38 +872,72 @@ def decrypt_message(request, message_pk):
 
     return render(request, 'fileshare/decrypt_message.html', {'form': decrypt_form})
 
+
 @login_required(login_url='login')
 def updateunread(request, message_pk):
     query = models.Conversation.objects.get(pk=message_pk)
     currentcount = query.unreadmessages
     query.unreadmessages = 0
     query.save()
-    #usercount = int(request.user.profile.unreadmessages)
+    # usercount = int(request.user.profile.unreadmessages)
 
-    #request.user.profile.save()
+    # request.user.profile.save()
     return HttpResponse("success")
 
 
 @login_required(login_url='login')
 def search_results(request):
-
     query = request.POST.get('search')
     param = request.POST.get('parameter')
+    search_form = SearchForm(request.POST)
+    day = None
 
-    if query is None or query == "":
+    if query == "" and param in ["desc", "owner", "modified_by"]:
         return redirect('main')
 
     usernames = []
     if param == "desc":
         results = models.Report.objects.filter(
             Q(short_desc__icontains=query) | Q(long_desc__icontains=query)
-            ).exclude(~Q(owned_by=request.user), Q(private=True))
+        ).exclude(~Q(owned_by=request.user), Q(private=True))
     elif param == "owner":
         usernames = models.User.objects.filter(username__icontains=query)
-        results = models.Report.objects.filter(Q(owned_by__in=usernames)).exclude(~Q(owned_by=request.user ), Q(private=True))
-    else: 
-        results = []
+        results = models.Report.objects.filter(Q(owned_by__in=usernames)).exclude(~Q(owned_by=request.user),
+                                                                                  Q(private=True))
+
+    elif param == "modified_by":
+        results = models.Report.objects.filter(Q(last_modified_by__icontains=query)).exclude(~Q(owned_by=request.user),
+                                                                                             Q(private=True))
+
+    elif param == "created":
+        datefield = search_form.fields['datepicker']
+        m = request.POST.get('datepicker_month')
+        d = request.POST.get('datepicker_day')
+        y = request.POST.get('datepicker_year')
+
+        day = datetime.date(int(y), int(m), int(d))
+        new_end = day + datetime.timedelta(days=1)
+        results = models.Report.objects.filter(
+            Q(created__range=[day, new_end])
+        ).exclude(~Q(owned_by=request.user), Q(private=True))
+
+    elif param == "modified":
+        datefield = search_form.fields['datepicker']
+        m = request.POST.get('datepicker_month')
+        d = request.POST.get('datepicker_day')
+        y = request.POST.get('datepicker_year')
+
+        day = datetime.date(int(y), int(m), int(d))
+        new_end = day + datetime.timedelta(days=1)
+        results = models.Report.objects.filter(
+            Q(last_modfied__range=[day, new_end])
+        ).exclude(~Q(owned_by=request.user), Q(private=True))
+
+
+    else:
+        results = Q()
 
         # Add support for searching by date created and date modified??
 
-    return render(request, 'fileshare/search_results.html', {'query': query, 'results': results, 'usernames': usernames, 'param': param})
+    return render(request, 'fileshare/search_results.html',
+                  {'query': query, 'results': results, 'usernames': usernames, 'param': param, 'date': day})
