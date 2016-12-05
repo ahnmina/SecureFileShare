@@ -159,9 +159,9 @@ class SearchForm(forms.Form):
     SEARCH_OPTIONS = (
             ('desc', "Description"),
             ('owner', "Owned By"),
-            ('modified', "Last Modified By"),
+            ('modified_by', "Last Modified By"),
             ('created', "Created",),
-            ('modified_by', "Last Modified"),
+            ('modified', "Last Modified"),
         )
     parameter = forms.CharField(widget=forms.Select(choices=SEARCH_OPTIONS))
     datepicker = forms.DateField(widget=SelectDateWidget())
