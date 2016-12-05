@@ -59,7 +59,7 @@ def decrypt_file(file_name, key):
 
 def display_report_files(report_id):
 	key = '00112233445566778899aabbccddeeff'
-	url="http://localhost:8000/fda_report_files/" + report_id
+	url="https://quiet-tundra-22071.herokuapp.com/fda_report_files/" + report_id
 	with closing(urlopen(url)) as response:
 		#print(response.read().decode())
 		json_data = response.read().decode()
@@ -78,7 +78,7 @@ def display_report_files(report_id):
 	file_name = ""
 	for file in files:
 		if str(file["id"]) == file_id:
-			file_url = "http://localhost:8000/media/" + file["file_name"]
+			file_url = "https://quiet-tundra-22071.herokuapp.com/media/" + file["file_name"]
 			file_url_parts = file["file_name"].split('/')
 			file_name = file_url_parts[len(file_url_parts)-1]
 			file_hash_db = file["file_hash"]
@@ -123,7 +123,7 @@ def display_report_files(report_id):
 	
 def display_reports():
 	key = '00112233445566778899aabbccddeeff'
-	url="http://localhost:8000/fda_login/" + username + "/" + password
+	url="https://quiet-tundra-22071.herokuapp.com/fda_login/" + username + "/" + password
 	with closing(urlopen(url)) as response:
 		#print(response.read().decode())
 		json_data = response.read().decode()
