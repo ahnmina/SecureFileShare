@@ -298,7 +298,7 @@ def view_report(request, report_id):
                 report.delete()
                 return redirect('main')
     else:
-        update_form = ReportForm(instance=report)
+        update_form = ReportForm(instance=report,initial={'is_encrypted':report.is_encrypted,'private':report.private})
         comment_form = ReportCommentsForm()
 
     return render(request, 'fileshare/view_report.html',
