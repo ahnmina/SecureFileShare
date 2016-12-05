@@ -73,29 +73,43 @@ def HexToByte(hexStr):
 
 
 @csrf_exempt
+def fda_getreports(request,username,password):
+    user = authenticate(username=username, password=password)
+    login(request, user)
+    your_reports = models.Report.objects.filter(owned_by=user)
+    other_reports = models.Report.objects.filter(private=False).exclude(owned_by=user)
+    viewable_reports = []
+    for your_report in your_reports:
+        num_attachments = len(your_report.files.all())
+        report_data = {"report_id": your_report.id, "title": your_report.short_desc, "attachments": num_attachments}
+        viewable_reports.append(report_data)
+    for other_report in other_reports:
+        num_attachments = len(other_report.files.all())
+        report_data = {"report_id": other_report.id, "title": other_report.short_desc,
+                       "attachments": num_attachments}
+        viewable_reports.append(report_data)
+
+    return HttpResponse(json.dumps(viewable_reports))
+
+@csrf_exempt
+def fda_download_report(request,username,password,reportid,documentid):
+    user = authenticate(username=username, password=password)
+    login(request, user)
+    thereport = models.Report.objects.get(id=reportid)
+    thedocument = models.Documents.objects.get(id=documentid)
+    theurl = "/media/" + thedocument.file_attached.name
+
+    return HttpResponseRedirect(theurl)
+
+@csrf_exempt
 def fda_login(request, username, password):
-    print("username: " + username)
     #     print("password: " + password)
     user = authenticate(username=username, password=password)
     if user is not None:
         login(request, user)
-        your_reports = models.Report.objects.filter(owned_by=user)
-        other_reports = models.Report.objects.filter(private=False).exclude(owned_by=user)
-        viewable_reports = []
-        for your_report in your_reports:
-            num_attachments = len(your_report.files.all())
-            report_data = {"report_id": your_report.id, "title": your_report.short_desc, "attachments": num_attachments}
-            viewable_reports.append(report_data)
-        for other_report in other_reports:
-            num_attachments = len(other_report.files.all())
-            report_data = {"report_id": other_report.id, "title": other_report.short_desc,
-                           "attachments": num_attachments}
-            viewable_reports.append(report_data)
+        return HttpResponse("true")
 
-        return HttpResponse(json.dumps(viewable_reports))
-
-    return HttpResponse('Login Failed!')
-
+    return HttpResponse("false")
 
 @csrf_exempt
 def fda_report_files(request, report_id):

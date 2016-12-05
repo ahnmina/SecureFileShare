@@ -59,7 +59,7 @@ def decrypt_file(file_name, key):
 
 def display_report_files(report_id):
 	key = '00112233445566778899aabbccddeeff'
-	url="http://localhost:8000/fda_report_files/" + report_id
+	url="https://quiet-tundra-22071.herokuapp.com/fda_report_files/" + report_id
 	with closing(urlopen(url)) as response:
 		#print(response.read().decode())
 		json_data = response.read().decode()
@@ -78,13 +78,13 @@ def display_report_files(report_id):
 	file_name = ""
 	for file in files:
 		if str(file["id"]) == file_id:
-			file_url = "http://localhost:8000/media/" + file["file_name"]
+			file_url = "https://quiet-tundra-22071.herokuapp.com/media/" + file["file_name"]
 			file_url_parts = file["file_name"].split('/')
 			file_name = file_url_parts[len(file_url_parts)-1]
 			file_hash_db = file["file_hash"]
 
 			if(file['is_encrypted']):
-				answer = input(file_name + " is encrypted. You must decrypt it to view the file. Would you like to decrypt?" + "\n")
+				answer = input(file_name + " is encrypted. You must decrypt it to view the file. Would you like to decrypt? Enter: 'y'" + "\n")
 				if(answer == 'y'):
 					decrypt_file(file_name, key)
 					print (file_name + " has been decrypted")
@@ -121,9 +121,9 @@ def display_report_files(report_id):
 	print("")
 	print("Done!")
 	
-def display_reports():
+def display_reports(username,password):
 	key = '00112233445566778899aabbccddeeff'
-	url="http://localhost:8000/fda_login/" + username + "/" + password
+	url="https://quiet-tundra-22071.herokuapp.com/fda_getreports/" + username + "/" + password
 	with closing(urlopen(url)) as response:
 		#print(response.read().decode())
 		json_data = response.read().decode()
@@ -149,8 +149,21 @@ def display_reports():
 		sys.exit(0)
 	else:
 		answer = (int)(input("Select an option:" + "\n" + "1. Encrypt a file to upload,"+ "\n" + "2. Decrypt a file to download" + "\n" + "3. Quit" + "\n"))
-	
-display_reports()
+
+
+def login(username,password):
+	url = "https://quiet-tundra-22071.herokuapp.com/fda_login/" + username + "/" + password
+	with closing(urlopen(url)) as response:
+		result = response.read()
+	if (result == b"true"):
+		display_reports(username,password)
+	else:
+		print("Invalid login. Please try again.")
+		username = input('Enter Userid: ')
+		password = input('Enter Password: ')
+		login(username,password)
+
+login(username,password)
 
 
 
