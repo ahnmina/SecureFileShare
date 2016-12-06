@@ -5,7 +5,7 @@
 <div class="container">
 
     <div class="panel panel-default">
-        <div class="panel-heading"><h2><strong>{{ group.name }}</strong></h2></div>
+        <div class="panel-heading"><h2><strong>{{ group.name }}</strong> <small>created by <strong>{{ group.creator }}</strong></small></h2></div>
         <div class="panel-body">
          <div class="row">
             <div class="col-lg-8">
@@ -29,14 +29,14 @@
                     {% endif %}
                 </div>
 
-                <div class="panel panel-default" style="overflow:scroll;height:600px;">
+                <div class="panel panel-default" style="overflow:scroll;height:800px;">
                     <div class="panel-heading"><h4><strong>Conversation</strong></h4></div>
                     <ul class="list-group">
                         {% for c in group_comments.all %}
                         <li class="list-group-item">
-                            <div align="right">{{ c.timestamp }}</div><br>
-                            <i><strong>{{ c.creator }}</strong> said</i><br>
-                            <p style="padding-left:15pt">{{ c.comment }}<p>
+                            <div style="float:right">{{ c.timestamp }}</div>
+                            <div style="float:left"><i><strong>{{ c.creator }}</strong> said</i></div><br>
+                            <p style="padding-left:15pt;word-wrap:break-word">{{ c.comment }}<p>
                             </li>
                             {% endfor %}
 
@@ -89,88 +89,87 @@
 
                                 <tr>
                                     <td> {{ m }} </td>
-                                    
                                     <td>
-                                      {% if m != user.profile and user.profile == group.creator %}
+                                        {% if m != user.profile and user == group.creator %}
 
-                                      <form id="remove_{{ m }}" method="POST" action=".">
-                                        {% csrf_token %}
-                                        <div align="right"><button class="btn btn-default btn-me"  type="submit" form="remove_{{ m }}" name="action" value="{{ m.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></button></div>
-                                    </form>
+                                        <form id="remove_{{ m }}" method="POST" action=".">
+                                            {% csrf_token %}
+                                            <div align="right"><button class="btn btn-default btn-me"  type="submit" form="remove_{{ m }}" name="action" value="{{ m.id }}"><span class="glyphicon glyphicon-remove" style="color: red"></span></button></div>
+                                        </form>
 
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                {% endfor %}
+                            </table><br>
+                            <table class="table table-striped">
+                                <th><strong>Add members</strong><h4>
+                                    <th></th>
+                                    {% for m in all_users %}
+
+                                    <tr>
+                                     {% if m.profile not in group.members.all %}
+                                     <td> {{ m.profile }} </td>
+                                     <td>
+
+
+                                        <form id="add{{ m }}" method="POST" action=".">
+                                            {% csrf_token %}
+                                            <div align="right"><button class="btn btn-default btn-me"  type="submit" form="add{{ m }}" name="action" value="p{{ m.profile.id }}"><span class="glyphicon glyphicon-plus" style="color: green"></span></button></div>
+                                        </form>
+
+
+                                    </td>
                                     {% endif %}
-                                </td>
-                            </tr>
+                                </tr>
 
-                            {% endfor %}
-                        </table><br>
-                        <table class="table table-striped">
-                            <th><strong>Add members</strong><h4>
-                                <th></th>
-                                {% for m in all_users %}
+                                {% endfor %}
 
-                                <tr>
-                                 {% if m.profile not in group.members.all %}
-                                 <td> {{ m.profile }} </td>
-                                 <td>
+                            </table>
 
+                        </div>
+                    </div>
 
-                                    <form id="add{{ m }}" method="POST" action=".">
+                    <div class="panel panel-default">
+                        <div class="panel-heading"><strong>Add private reports to this group</strong></div>
+                        <div class="panel-body">
+                            {% if private_reports.count == 0 %}
+                            <i>There are no reports to be added to this group.</i>
+                            {% else %}
+                            <ul class="list-group">
+                                {% for r in private_reports %}
+                                <li class="list-group-item">
+                                    {{ r }}
+                                    <form id="add_{{ r.short_desc }}" action="." method="POST">
                                         {% csrf_token %}
-                                        <div align="right"><button class="btn btn-default btn-me"  type="submit" form="add{{ m }}" name="action" value="p{{ m.profile.id }}"><span class="glyphicon glyphicon-plus" style="color: green"></span></button></div>
+                                        <div align="right"><button class="btn btn-success btn-sm" type="submit" form="add_{{ r.short_desc }}" name="action" value="a{{ r.id }}"><span class="glyphicon glyphicon-plus"></span></button></div>
                                     </form>
-
-
-                                </td>
-                                {% endif %}
-                            </tr>
-
-                            {% endfor %}
-
-                        </table>
-
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
+                    <div align="right">
+                        <form id="leave_{{ group.name }}" action="{% url 'fileshare:view_group' group.id %}" method="POST">
+                            {% csrf_token %}
 
-                <div class="panel panel-default">
-                    <div class="panel-heading"><strong>Add private reports to this group</strong></div>
-                    <div class="panel-body">
-                        {% if private_reports.count == 0 %}
-                        <i>There are no reports to be added to this group.</i>
-                        {% else %}
-                        <ul class="list-group">
-                            {% for r in private_reports %}
-                            <li class="list-group-item">
-                                {{ r }}
-                                <form id="add_{{ r.short_desc }}" action="." method="POST">
-                                    {% csrf_token %}
-                                    <div align="right"><button class="btn btn-success btn-sm" type="submit" form="add_{{ r.short_desc }}" name="action" value="a{{ r.id }}"><span class="glyphicon glyphicon-plus"></span></button></div>
-                                </form>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
+                            {% if user == group.creator %}
+                            <button class="btn btn-danger" type="submit" form="leave_{{ group.name }}" name="action" value="e"><span>End group</button>
+                            {% else %}
+                            <button class="btn btn-warning" type="submit" form="leave_{{ group.name }}" name="action" value="l" ><span>Leave group</button>
+                            {% endif %}
+
+                        </form>
                     </div>
-                </div>
-                <div align="right">
-                    <form id="leave_{{ group.name }}" action="{% url 'fileshare:view_group' group.id %}" method="POST">
-                        {% csrf_token %}
 
-                        {% if user == group.creator %}
-                        <button class="btn btn-danger" type="submit" form="leave_{{ group.name }}" name="action" value="e"><span>End group</button>
-                        {% else %}
-                        <button class="btn btn-warning" type="submit" form="leave_{{ group.name }}" name="action" value="l" ><span>Leave group</button>
-                        {% endif %}
-
-                    </form>
                 </div>
 
             </div>
-
         </div>
-    </div>
 
-</div>
+    </div>
 
 </div>
 
