@@ -54,6 +54,5 @@ urlpatterns = [
     url('^search_results', views.search_results, name='search_results'),
     url('^fda_login/(?P<username>.+)/(?P<password>.+)', views.fda_login, name='fda_login'),
     url('^fda_getreports/(?P<username>.+)/(?P<password>.+)', views.fda_getreports, name='fda_getreports'),
-    url('^fda_download_report/(?P<username>.+)/(?P<password>.+)/(?P<reportid>.+)/(?P<documentid>.+)', views.fda_download_report, name='fda_download_report'),
     url('^fda_report_files/(?P<report_id>[0-9]+)$', views.fda_report_files, name='fda_report_files'),
 ]
