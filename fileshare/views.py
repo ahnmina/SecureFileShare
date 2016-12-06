@@ -899,7 +899,7 @@ def search_results(request):
         day = datetime.date(int(y), int(m), int(d))
         new_end = day + datetime.timedelta(days=1)
         results = models.Report.objects.filter(
-            Q(last_modfied__range=[day, new_end])
+            Q(last_modified__range=[day, new_end])
         ).exclude(~Q(owned_by=request.user), Q(private=True))
 
 
